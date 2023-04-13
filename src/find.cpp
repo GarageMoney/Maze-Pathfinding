@@ -241,6 +241,7 @@ void generateKruskal(SDL_Renderer* renderer, char grid[][n], int o, int p, int &
     //grid is initially filled entirely with walls
     vector<Set*> sets;
     vector<pair<int, int>> walls;
+    vector<pair<int, int>> pot;
     for(int i = 1; i < n - 1; i++)
         for(int j = 1; j < n - 1; j++)
             walls.push_back({i, j});
@@ -270,10 +271,15 @@ void generateKruskal(SDL_Renderer* renderer, char grid[][n], int o, int p, int &
                 adjPaths.push_back(adjacent.at(i));
 
         //if there are no adjacent or corner paths 
-        if(adjPaths.empty() && corPaths.empty())
+        if(adjPaths.empty())
         {
+            if(corPaths.empty())
+            {
                 grid[r][c] = ' ';
                 sets.push_back(new Set({r, c}));
+            }
+            else if(corPaths.size() < 3)
+                pot.push_back({r, c});
         }
         //if there is one adjacent path
         else if(adjPaths.size() == 1)
@@ -332,10 +338,7 @@ void generateKruskal(SDL_Renderer* renderer, char grid[][n], int o, int p, int &
     //remove any disconnected islands
     if(sets.size() != 1 && s != 1)
     {
-        for(int i = 1; i < n - 1; i++)
-            for(int j = 1; j < n - 1; j++)
-                if(grid[i][j] == 'X')
-                    walls.push_back({i, j});
+        walls.swap(pot);
         s++;
         goto top;
     }
@@ -345,6 +348,10 @@ void generateKruskal(SDL_Renderer* renderer, char grid[][n], int o, int p, int &
     for(int i = n - 2; i > 0; i--)
         if(grid[i][i] != 'X'){grid[i][i] = 'e'; e = i; break;}
     Display(renderer, grid); SDL_Delay(1000);
+
+    //de memory
+    for(Set* i : sets)
+        delete i;
 }
 
 //clear explored path markers in maze
